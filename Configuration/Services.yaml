@@ -5,7 +5,7 @@ services:
     autoconfigure: true
     public: false
 
-  Cobweb\SvconnectorConerstone\:
+  Cobweb\SvconnectorCornerstone\:
     resource: '../Classes/*'
 
   Cobweb\SvconnectorCornerstone\Service\ConnectorJson:
