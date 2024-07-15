@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cobweb\SvconnectorJson\Unit\Tests;
+namespace Cobweb\SvconnectorCornerstone\Unit\Tests;
 
 /*
  * This file is part of the TYPO3 CMS project.
@@ -17,7 +17,7 @@ namespace Cobweb\SvconnectorJson\Unit\Tests;
  * The TYPO3 project - inspiring people to share!
  */
 
-use Cobweb\SvconnectorJson\Paginator\HydraPaginator;
+use Cobweb\SvconnectorCornerstone\Paginator\HydraPaginator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;

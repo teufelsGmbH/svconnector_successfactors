@@ -1,7 +1,7 @@
 <?php
 
 /***************************************************************
- * Extension Manager/Repository config file for ext "svconnector_json".
+ * Extension Manager/Repository config file for ext "svconnector_cornerstone".
  *
  * Auto generated 05-04-2017 18:01
  *
@@ -11,14 +11,14 @@
  ***************************************************************/
 
 $EM_CONF[$_EXTKEY] = [
-    'title' => 'Connector service - JSON',
-    'description' => 'Connector service for JSON data',
+    'title' => 'Connector service - JSON (Cornerstone)',
+    'description' => 'Connector service for Cornerstone Reporting API (JSON)',
     'category' => 'services',
     'version' => '5.0.0',
     'state' => 'stable',
     'clearcacheonload' => 0,
-    'author' => 'Francois Suter (Idéative)',
-    'author_email' => 'typo3@ideative.ch',
+    'author' => 'Francois Suter (Idéative), Bastian Holzem (teufels GmbH)',
+    'author_email' => 'typo3@ideative.ch, digital@teufels.com',
     'author_company' => '',
     'constraints' =>
         [

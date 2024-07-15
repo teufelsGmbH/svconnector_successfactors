@@ -52,7 +52,7 @@ Custom paginators
 As explained in the :ref:`Configuration chapter <configuration-paginator>`, only
 the JSON-Hydra pagination mechanism is covered out of the box by this extension.
 For any other mechanism, you need to develop your own paginator. This is done by
-extending the :php:`\Cobweb\SvconnectorJson\Paginator\AbstractPaginator` class.
+extending the :php:`\Cobweb\SvconnectorCornerstone\Paginator\AbstractPaginator` class.
 
 The following things need to be defined (or known):
 
@@ -85,5 +85,5 @@ aggregate()
   method of the custom paginator. The expected result of the call to :code:`aggregate()`
   is a data structure as if all data had been fetched in a single call.
 
-The existing :php:`\Cobweb\SvconnectorJson\Paginator\HydraPaginator` is obviously a good
+The existing :php:`\Cobweb\SvconnectorCornerstone\Paginator\HydraPaginator` is obviously a good
 reference for how this all works.
