@@ -27,6 +27,7 @@ use Cobweb\Svconnector\Service\ConnectorBase;
 use Cobweb\Svconnector\Utility\FileUtility;
 use Cobweb\SvconnectorCornerstone\Paginator\AbstractPaginator;
 use Cobweb\SvconnectorCornerstone\Paginator\HydraPaginator;
+use GuzzleHttp\Client;
 use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -293,11 +294,15 @@ class ConnectorJson extends ConnectorBase
         if (isset($this->parameters['queryParameters'])) {
             $uri = sprintf('%s?%s', $uri, http_build_query($this->parameters['queryParameters']));
         }
-        $data = $fileUtility->getFileContent(
-            $uri,
-            $headers,
-            $this->parameters['method'] ?? 'GET'
-        );
+
+        // Add Access Token to headers
+        $accessToken = $this->getAccessToken($this->parameters);
+        if (is_null($headers)) { $headers = []; }
+        $headers = array_merge($headers, ['Authorization' => 'Bearer ' . $accessToken]);
+
+        // fetch all data using wrapper method
+        $data = $this->fetchData($this->parameters, $headers);
+
         if ($data === false) {
             $message = sprintf(
                 $this->sL('LLL:EXT:svconnector_cornerstone/Resources/Private/Language/locallang.xlf:json_not_fetched'),
@@ -376,4 +381,131 @@ class ConnectorJson extends ConnectorBase
         }
         return $paginator;
     }
+
+    /**
+     * Return the cornerstone accessToken
+     * for ReportingAPI
+     *
+     * @param array $parameters
+     * @return String|null
+     */
+    protected function getAccessToken(array $parameters): ?string {
+
+        if ((array_key_exists('clientId', $parameters)) && (array_key_exists('clientSecret', $parameters))) {
+
+            $parsed_url = parse_url($parameters['uri']);
+            $domain = $parsed_url['scheme'] . '://' . $parsed_url['host'];
+            $tokenUrl = $domain . '/services/api/oauth2/token';
+
+            try {
+                $client = new Client();
+                $response = $client->post($tokenUrl, [
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'Cache-Control' => 'no-cache',
+                    ],
+                    'json' => [
+                        'clientId' => $parameters['clientId'],
+                        'clientSecret' => $parameters['clientSecret'],
+                        'grantType' => 'client_credentials',
+                        'scope' => 'vw_rpt_requisition:read vw_rpt_requisition_cf:read vw_rpt_job_requisition_local:read vw_rpt_requisition_location:read',
+                    ],
+                ]);
+
+                if ($response->getStatusCode() === 200) {
+                    $body = $response->getBody()->getContents();
+                    $data = json_decode($body, true);
+                    return $data['access_token'] ?? null;
+                }
+            } catch (\Exception $e) {
+                // Handle exception as needed
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Fetches Api Data as array
+     *
+     * @param string $uri Address to read
+     * @param array $headers Headers to pass on to the request
+     * @return array
+     */
+    protected function fetchApiData(string $uri, array $headers) {
+        $fileUtility = GeneralUtility::makeInstance(FileUtility::class);
+        $response = $fileUtility->getFileContent(
+            $uri,
+            $headers,
+            $this->parameters['method'] ?? 'GET'
+        );
+        if ($response === false) {
+            return null;
+        }
+        $data = json_decode($response, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return null;
+        }
+        return $data['value'];
+    }
+
+    /**
+     * Fetches data from cornerstone
+     *
+     * @param string $uri Address to read
+     * @param array $headers Headers to pass on to the request
+     * @return string JSON string with all data
+     */
+    protected function fetchData(array $parameters, array $headers): string
+    {
+        $uri = $this->parameters['uri'];
+        if (isset($this->parameters['queryParameters'])) {
+            $uri = sprintf('%s?%s', $uri, http_build_query($this->parameters['queryParameters']));
+        }
+        $data = $this->fetchApiData($uri, $headers);
+        $data = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return $data;
+    }
+
+    /**
+     * extend Query Parameters with jrl_job_requisition_id
+     *
+     * @param array $queryParameters queryParameters
+     * @return array
+     */
+    protected function extendQueryParameters(array $queryParameters): array
+    {
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('tx_tt3career_domain_model_joboffer');
+
+        $statement = $queryBuilder
+            ->select('external_id')
+            ->from('tx_tt3career_domain_model_joboffer')
+            ->where(
+                $queryBuilder->expr()->eq('deleted', $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT))
+            )
+            ->orderBy('external_id')
+            ->execute();
+
+        $filterParts = [];
+        while ($row = $statement->fetch()) {
+            if (!empty($row['external_id'])) {
+                $filterParts[] = 'jrl_job_requisition_id eq ' . (int)$row['external_id'];
+            }
+        }
+
+        if (!empty($filterParts)) {
+            $newFilter = implode(' or ', $filterParts);
+
+            if (isset($queryParameters['$filter'])) {
+                $queryParameters['$filter'] .= ' and (' . $newFilter . ')';
+            } else {
+                $queryParameters['$filter'] = $newFilter;
+            }
+        }
+
+        return $queryParameters;
+    }
+
 }
