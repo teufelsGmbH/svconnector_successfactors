@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cobweb\SvconnectorCornerstone\Unit\Tests;
+namespace Cobweb\SvconnectorSuccessfactors\Unit\Tests;
 
 /*
  * This file is part of the TYPO3 CMS project.
@@ -18,7 +18,7 @@ namespace Cobweb\SvconnectorCornerstone\Unit\Tests;
  */
 
 use Cobweb\Svconnector\Exception\SourceErrorException;
-use Cobweb\SvconnectorCornerstone\Service\ConnectorJson;
+use Cobweb\SvconnectorSuccessfactors\Service\ConnectorJson;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -29,13 +29,13 @@ use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
  *
  * @author Francois Suter <typo3@cobweb.ch>
  * @package TYPO3
- * @subpackage tx_svconnector_cornerstone
+ * @subpackage tx_svconnector_successfactors
  */
 class ConnectorJsonTest extends FunctionalTestCase
 {
     protected $testExtensionsToLoad = [
             'typo3conf/ext/svconnector',
-            'typo3conf/ext/svconnector_cornerstone',
+            'typo3conf/ext/svconnector_successfactors',
     ];
 
     protected ConnectorJson $subject;
@@ -61,7 +61,7 @@ class ConnectorJsonTest extends FunctionalTestCase
         return [
             'UTF-8 data' => [
                 'parameters' => [
-                    'uri' => 'EXT:svconnector_cornerstone/Tests/Functional/Fixtures/data_utf8.json',
+                    'uri' => 'EXT:svconnector_successfactors/Tests/Functional/Fixtures/data_utf8.json',
                 ],
                 'result' => [
                     'items' => [
@@ -73,7 +73,7 @@ class ConnectorJsonTest extends FunctionalTestCase
             ],
             'ISO-8859-1 data' => [
                 'parameters' => [
-                    'uri' => 'EXT:svconnector_cornerstone/Tests/Functional/Fixtures/data_latin1.json',
+                    'uri' => 'EXT:svconnector_successfactors/Tests/Functional/Fixtures/data_latin1.json',
                     'encoding' => 'iso-8859-1',
                 ],
                 'result' => [

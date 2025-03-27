@@ -1,7 +1,7 @@
 {
-	"name": "teufels/svconnector_cornerstone",
+	"name": "teufels/svconnector_successfactors",
 	"type": "typo3-cms-extension",
-	"description": "Connector service for Cornerstone Reporting API JSON",
+	"description": "Connector service for SAP SuccessFactors API (JSON)",
 	"license": [
 		"GPL-2.0-or-later"
 	],
@@ -19,7 +19,7 @@
 	],
 	"autoload": {
 		"psr-4": {
-			"Cobweb\\SvconnectorCornerstone\\": "Classes/"
+			"Cobweb\\SvconnectorSuccessfactors\\": "Classes/"
 		}
 	},
 	"require": {
@@ -36,11 +36,11 @@
 		"phpstan/phpstan": "^1.10"
 	},
 	"replace": {
-		"typo3-ter/svconnector_cornerstone": "self.version"
+		"typo3-ter/svconnector_successfactors": "self.version"
 	},
 	"extra": {
 		"typo3/cms": {
-			"extension-key": "svconnector_cornerstone"
+			"extension-key": "svconnector_successfactors"
 		}
 	},
 	"config": {

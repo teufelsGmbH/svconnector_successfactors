@@ -1,7 +1,7 @@
 <?php
 
 /***************************************************************
- * Extension Manager/Repository config file for ext "svconnector_cornerstone".
+ * Extension Manager/Repository config file for ext "svconnector_successfactors".
  *
  * Auto generated 05-04-2017 18:01
  *
@@ -11,10 +11,10 @@
  ***************************************************************/
 
 $EM_CONF[$_EXTKEY] = [
-    'title' => 'Connector service - JSON (Cornerstone)',
-    'description' => 'Connector service for Cornerstone Reporting API (JSON)',
+    'title' => 'Connector service - JSON (SAP SuccessFactors)',
+    'description' => 'Connector service for SAP SuccessFactors API (JSON)',
     'category' => 'services',
-    'version' => '5.0.0-cornerstone',
+    'version' => '5.0.0-successfactors',
     'state' => 'stable',
     'clearcacheonload' => 0,
     'author' => 'Francois Suter (Idéative), Bastian Holzem (teufels GmbH)',

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cobweb\SvconnectorCornerstone\Service;
+namespace Cobweb\SvconnectorSuccessfactors\Service;
 
 /*
  * This file is part of the TYPO3 CMS project.
@@ -25,20 +25,20 @@ use Cobweb\Svconnector\Event\ProcessXmlDataEvent;
 use Cobweb\Svconnector\Exception\SourceErrorException;
 use Cobweb\Svconnector\Service\ConnectorBase;
 use Cobweb\Svconnector\Utility\FileUtility;
-use Cobweb\SvconnectorCornerstone\Paginator\AbstractPaginator;
-use Cobweb\SvconnectorCornerstone\Paginator\HydraPaginator;
+use Cobweb\SvconnectorSuccessfactors\Paginator\AbstractPaginator;
+use Cobweb\SvconnectorSuccessfactors\Paginator\HydraPaginator;
 use GuzzleHttp\Client;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Service that reads JSON data for the "svconnector_cornerstone" extension.
+ * Service that reads JSON data for the "svconnector_successfactors" extension.
  */
-#[AsConnectorService(type: 'cornerstone', name: 'Cornerstone (JSON) connector')]
+#[AsConnectorService(type: 'successfactors', name: 'SAP SuccessFactors (JSON) connector')]
 class ConnectorJson extends ConnectorBase
 {
-    protected string $extensionKey = 'svconnector_cornerstone';
+    protected string $extensionKey = 'svconnector_successfactors';
 
     /**
      * Verifies that the connection is functional
@@ -64,19 +64,19 @@ class ConnectorJson extends ConnectorBase
         // The "uri" parameter is mandatory
         if (empty($this->parameters['uri'])) {
             $result[ContextualFeedbackSeverity::ERROR->value][] = $this->sL(
-                'LLL:EXT:svconnector_cornerstone/Resources/Private/Language/locallang.xlf:no_json_defined'
+                'LLL:EXT:svconnector_successfactors/Resources/Private/Language/locallang.xlf:no_json_defined'
             );
         }
         // The "headers" parameter is expected to be an array
         if (isset($this->parameters['headers']) && !is_array($this->parameters['headers'])) {
             $result[ContextualFeedbackSeverity::WARNING->value][] = $this->sL(
-                'LLL:EXT:svconnector_cornerstone/Resources/Private/Language/locallang.xlf:headers_must_be_array'
+                'LLL:EXT:svconnector_successfactors/Resources/Private/Language/locallang.xlf:headers_must_be_array'
             );
         }
         // The "queryParameters" parameter is expected to be an array
         if (isset($this->parameters['queryParameters']) && !is_array($this->parameters['queryParameters'])) {
             $result[ContextualFeedbackSeverity::WARNING->value][] = $this->sL(
-                'LLL:EXT:svconnector_cornerstone/Resources/Private/Language/locallang.xlf:query_parameters_must_be_array'
+                'LLL:EXT:svconnector_successfactors/Resources/Private/Language/locallang.xlf:query_parameters_must_be_array'
             );
         }
         return $result;
@@ -306,7 +306,7 @@ class ConnectorJson extends ConnectorBase
 
         if ($data === false) {
             $message = sprintf(
-                $this->sL('LLL:EXT:svconnector_cornerstone/Resources/Private/Language/locallang.xlf:json_not_fetched'),
+                $this->sL('LLL:EXT:svconnector_successfactors/Resources/Private/Language/locallang.xlf:json_not_fetched'),
                 $uri,
                 $fileUtility->getError()
             );
@@ -432,8 +432,8 @@ class ConnectorJson extends ConnectorBase
     }
 
     /**
-     * Return the cornerstone accessToken
-     * for ReportingAPI
+     * Return the SAP SuccessFactors accessToken
+     * for SAP SuccessFactors API
      *
      * @param array $parameters
      * @return String|null
@@ -500,7 +500,7 @@ class ConnectorJson extends ConnectorBase
     }
 
     /**
-     * Fetches data from cornerstone
+     * Fetches data from SAP SuccessFactors
      *
      * @param string $uri Address to read
      * @param array $headers Headers to pass on to the request

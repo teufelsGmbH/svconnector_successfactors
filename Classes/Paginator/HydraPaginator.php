@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cobweb\SvconnectorCornerstone\Paginator;
+namespace Cobweb\SvconnectorSuccessfactors\Paginator;
 
 /*
  * This file is part of the TYPO3 CMS project.

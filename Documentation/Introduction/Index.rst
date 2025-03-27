@@ -24,7 +24,7 @@ If you have any questions about this extension, please ask them in the
 TYPO3 English mailing list, so that others can benefit from the
 answers. Please use the bug tracker on GitHub to report
 problem or suggest features
-(https://github.com/teufelsGmbH/svconnector_cornerstone/issues).
+(https://github.com/teufelsGmbH/svconnector_successfactors/issues).
 
 
 .. _happy-developer:

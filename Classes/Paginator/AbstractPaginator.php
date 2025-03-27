@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cobweb\SvconnectorCornerstone\Paginator;
+namespace Cobweb\SvconnectorSuccessfactors\Paginator;
 
 /**
  * Abstract class to inherit for any class that calculates pagination
