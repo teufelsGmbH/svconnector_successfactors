@@ -517,44 +517,4 @@ class ConnectorJson extends ConnectorBase
         return $data;
     }
 
-    /**
-     * extend Query Parameters filter with jrl_job_requisition_id's
-     *
-     * @param array $queryParameters queryParameters
-     * @return array
-     */
-    protected function extendQueryParameters(array $queryParameters, string $filterName): array
-    {
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
-            ->getQueryBuilderForTable('tx_tt3career_domain_model_joboffer');
-
-        $statement = $queryBuilder
-            ->select('external_id')
-            ->from('tx_tt3career_domain_model_joboffer')
-            ->where(
-                $queryBuilder->expr()->eq('deleted', $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT))
-            )
-            ->orderBy('external_id')
-            ->execute();
-
-        $filterParts = [];
-        while ($row = $statement->fetch()) {
-            if (!empty($row['external_id'])) {
-                $filterParts[] = 'jrl_job_requisition_id eq ' . (int)$row['external_id'];
-            }
-        }
-
-        if (!empty($filterParts)) {
-            $newFilter = implode(' or ', $filterParts);
-
-            if (isset($queryParameters['$filter'])) {
-                $queryParameters['$filter'] .= ' and (' . $newFilter . ')';
-            } else {
-                $queryParameters['$filter'] = $newFilter;
-            }
-        }
-
-        return $queryParameters;
-    }
-
 }
