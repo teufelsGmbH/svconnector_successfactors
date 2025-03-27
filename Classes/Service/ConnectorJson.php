@@ -28,6 +28,7 @@ use Cobweb\Svconnector\Utility\FileUtility;
 use Cobweb\SvconnectorCornerstone\Paginator\AbstractPaginator;
 use Cobweb\SvconnectorCornerstone\Paginator\HydraPaginator;
 use GuzzleHttp\Client;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
