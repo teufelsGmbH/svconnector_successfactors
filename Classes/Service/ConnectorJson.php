@@ -31,12 +31,12 @@ use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
- * Service that reads JSON data for the "svconnector_json" extension.
+ * Service that reads JSON data for the "svconnector_cornerstone" extension.
  */
-#[AsConnectorService(type: 'json', name: 'JSON connector')]
+#[AsConnectorService(type: 'cornerstone', name: 'Cornerstone (JSON) connector')]
 class ConnectorJson extends ConnectorBase
 {
-    protected string $extensionKey = 'svconnector_json';
+    protected string $extensionKey = 'svconnector_cornerstone';
 
     /**
      * Verifies that the connection is functional
