@@ -300,7 +300,7 @@ class ConnectorJson extends ConnectorBase
         if (is_null($headers)) { $headers = []; }
         $headers = array_merge($headers, ['Authorization' => 'Bearer ' . $accessToken]);
 
-        // fetch all data using wrapper method
+        //fetch all data using
         $data = $this->fetchData($this->parameters, $headers);
 
         if ($data === false) {
@@ -469,7 +469,7 @@ class ConnectorJson extends ConnectorBase
     }
 
     /**
-     * extend Query Parameters with jrl_job_requisition_id
+     * extend Query Parameters filter with jrl_job_requisition_id's
      *
      * @param array $queryParameters queryParameters
      * @return array
