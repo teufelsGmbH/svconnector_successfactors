@@ -1,12 +1,7 @@
 name: tests
 
 on:
-  push:
-  pull_request:
-  schedule:
-    # @todo Refactor workflow execution and introduce a generic workflow dispatching
-    # scheduled workflow, so nighlies can be ensured over branches (for the future).
-    - cron: "15 6 * * *"
+  workflow_dispatch:
 
 jobs:
   lint:
