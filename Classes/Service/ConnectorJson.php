@@ -440,24 +440,24 @@ class ConnectorJson extends ConnectorBase
      */
     protected function getAccessToken(array $parameters): ?string {
 
-        if ((array_key_exists('clientId', $parameters)) && (array_key_exists('clientSecret', $parameters))) {
+        if ((array_key_exists('client_id', $parameters)) && (array_key_exists('assertion', $parameters))) {
 
             $parsed_url = parse_url($parameters['uri']);
             $domain = $parsed_url['scheme'] . '://' . $parsed_url['host'];
-            $tokenUrl = $domain . '/services/api/oauth2/token';
+            $tokenUrl = $domain . '/oauth/token';
 
             try {
                 $client = new Client();
                 $response = $client->post($tokenUrl, [
                     'headers' => [
-                        'Content-Type' => 'application/json',
+                        'Content-Type' => 'application/x-www-form-urlencoded',
                         'Cache-Control' => 'no-cache',
                     ],
-                    'json' => [
-                        'clientId' => $parameters['clientId'],
-                        'clientSecret' => $parameters['clientSecret'],
-                        'grantType' => 'client_credentials',
-                        'scope' => 'vw_rpt_requisition:read vw_rpt_requisition_cf:read vw_rpt_job_requisition_local:read vw_rpt_requisition_location:read vw_rpt_requisition_posting:read',
+                    'form_params' => [
+                        'company_id' => $parameters['company_id'],
+                        'client_id' => $parameters['client_id'],
+                        'assertion' => $parameters['assertion'],
+                        'grant_type' => 'urn:ietf:params:oauth:grant-type:saml2-bearer',
                     ],
                 ]);
 
@@ -496,7 +496,7 @@ class ConnectorJson extends ConnectorBase
         if (json_last_error() !== JSON_ERROR_NONE) {
             return null;
         }
-        return $data['value'];
+        return $data['d']['results'];
     }
 
     /**
