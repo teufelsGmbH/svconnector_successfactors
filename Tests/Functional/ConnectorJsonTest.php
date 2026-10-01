@@ -64,10 +64,8 @@ class ConnectorJsonTest extends FunctionalTestCase
                     'uri' => 'EXT:svconnector_successfactors/Tests/Functional/Fixtures/data_utf8.json',
                 ],
                 'result' => [
-                    'items' => [
-                        [
-                            'name' => 'Porte interdùm lacîna c\'est euismod.',
-                        ],
+                    [
+                        'name' => 'Porte interdùm lacîna c\'est euismod.',
                     ],
                 ],
             ],
@@ -77,10 +75,8 @@ class ConnectorJsonTest extends FunctionalTestCase
                     'encoding' => 'iso-8859-1',
                 ],
                 'result' => [
-                    'items' => [
-                        [
-                            'name' => 'Porte interdùm lacîna c\'est euismod.',
-                        ],
+                    [
+                        'name' => 'Porte interdùm lacîna c\'est euismod.',
                     ],
                 ],
             ],
