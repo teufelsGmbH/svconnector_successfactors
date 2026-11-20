@@ -55,22 +55,32 @@ class ConnectorJson extends ConnectorBase
     /**
      * Checks the connector configuration and returns notices, warnings or errors, if any.
      *
-     * @param array $parameters Connector call parameters
      * @return array
      */
-    public function checkConfiguration(array $parameters = []): array
+    public function checkConfiguration(): array
     {
-        $result = parent::checkConfiguration(...func_get_args());
+        $result = parent::checkConfiguration();
         // The "uri" parameter is mandatory
         if (empty($this->parameters['uri'])) {
             $result[ContextualFeedbackSeverity::ERROR->value][] = $this->sL(
                 'LLL:EXT:svconnector_successfactors/Resources/Private/Language/locallang.xlf:no_json_defined'
             );
         }
-        // The "headers" parameter is expected to be an array
-        if (isset($this->parameters['headers']) && !is_array($this->parameters['headers'])) {
+        // The "headers" parameter is expected to be an array (and is deprecated)
+        if (isset($this->parameters['headers'])) {
             $result[ContextualFeedbackSeverity::WARNING->value][] = $this->sL(
-                'LLL:EXT:svconnector_successfactors/Resources/Private/Language/locallang.xlf:headers_must_be_array'
+                'LLL:EXT:svconnector_successfactors/Resources/Private/Language/locallang.xlf:headers_deprecated'
+            );
+            if (!is_array($this->parameters['headers'])) {
+                $result[ContextualFeedbackSeverity::WARNING->value][] = $this->sL(
+                    'LLL:EXT:svconnector_successfactors/Resources/Private/Language/locallang.xlf:headers_must_be_array'
+                );
+            }
+        }
+        // The "requestOptions" parameter is expected to be an array
+        if (isset($this->parameters['requestOptions']) && !is_array($this->parameters['requestOptions'])) {
+            $result[ContextualFeedbackSeverity::WARNING->value][] = $this->sL(
+                'LLL:EXT:svconnector_successfactors/Resources/Private/Language/locallang.xlf:request_options_must_be_array'
             );
         }
         // The "queryParameters" parameter is expected to be an array
@@ -86,34 +96,16 @@ class ConnectorJson extends ConnectorBase
      * This method calls the query method and returns the result as is,
      * i.e. the json data, but without any additional work performed on it
      *
-     * @param array $parameters Parameters for the call
      * @return mixed Server response
      * @throws \Exception
      */
-    public function fetchRaw(array $parameters = [])
+    public function fetchRaw(): mixed
     {
-        // Call to parent is used only to raise flag about argument deprecation
-        // TODO: remove once method signature is changed in next major version
-        parent::fetchRaw(...func_get_args());
-
         $result = $this->query();
         $this->logger->info(
             'RAW JSON data',
             [$result]
         );
-        // Implement post-processing hook
-        $hooks = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][$this->extensionKey]['processRaw'] ?? null;
-        if (is_array($hooks) && count($hooks) > 0) {
-            trigger_error(
-                'Using the processRaw hook is deprecated. Use the ProcessRawDataEvent instead',
-                E_USER_DEPRECATED
-            );
-            foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][$this->extensionKey]['processRaw'] as $className) {
-                $processor = GeneralUtility::makeInstance($className);
-                $result = $processor->processRaw($result, $this);
-            }
-        }
-        /** @var ProcessRawDataEvent $event */
         $event = $this->eventDispatcher->dispatch(
             new ProcessRawDataEvent($result, $this)
         );
@@ -123,32 +115,13 @@ class ConnectorJson extends ConnectorBase
     /**
      * This method calls the query and returns the results from the response as an XML structure
      *
-     * @param array $parameters Parameters for the call
      * @return string XML structure
      * @throws \Exception
      */
-    public function fetchXML(array $parameters = []): string
+    public function fetchXML(): string
     {
-        // Call to parent is used only to raise flag about argument deprecation
-        // TODO: remove once method signature is changed in next major version
-        parent::fetchXML(...func_get_args());
-
         $xml = $this->fetchArray();
         $xml = '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>' . "\n" . GeneralUtility::array2xml($xml);
-
-        // Implement post-processing hook
-        $hooks = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][$this->extensionKey]['processXML'] ?? null;
-        if (is_array($hooks) && count($hooks) > 0) {
-            trigger_error(
-                'Using the processXML hook is deprecated. Use the ProcessXmlDataEvent instead',
-                E_USER_DEPRECATED
-            );
-            foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][$this->extensionKey]['processXML'] as $className) {
-                $processor = GeneralUtility::makeInstance($className);
-                $xml = $processor->processXML($xml, $this);
-            }
-        }
-        /** @var ProcessXmlDataEvent $event */
         $event = $this->eventDispatcher->dispatch(
             new ProcessXmlDataEvent($xml, $this)
         );
@@ -159,16 +132,11 @@ class ConnectorJson extends ConnectorBase
     /**
      * Fetch the JSON data and return it as an array
      *
-     * @param array $parameters Parameters for the call
      * @return array PHP array
      * @throws \Exception
      */
-    public function fetchArray(array $parameters = []): array
+    public function fetchArray(): array
     {
-        // Call to parent is used only to raise flag about argument deprecation
-        // TODO: remove once method signature is changed in next major version
-        parent::fetchArray(...func_get_args());
-
         // Get the data from the source
         $result = $this->query();
         $result = json_decode((string)$result, true, 512, JSON_THROW_ON_ERROR);
@@ -184,23 +152,15 @@ class ConnectorJson extends ConnectorBase
             $data = $result;
         } else {
             $currentPage = $paginator->getStartPage();
-            $pagingParameter = $paginator->getPagingParameter();
             $hasNextPage = true;
             // Assemble a list of all results, including the first one
             $allResults = [$result];
+            $originalParameters = $this->parameters;
             do {
                 $paginator->setData($result);
                 $nextPage = $paginator->getNextPage();
                 if ($nextPage > $currentPage) {
-                    $mergedQueyParameters = array_merge(
-                        $this->parameters['queryParameters'] ?? [],
-                        [
-                            $pagingParameter => $nextPage,
-                        ]
-                    );
-                    $currentParameters = $this->parameters;
-                    $currentParameters['queryParameters'] = $mergedQueyParameters;
-                    $result = $this->query($currentParameters);
+                    $result = $this->query();
                     $result = json_decode((string)$result, true, 512, JSON_THROW_ON_ERROR);
                     if (!is_array($result)) {
                         throw new \InvalidArgumentException(
@@ -217,6 +177,8 @@ class ConnectorJson extends ConnectorBase
                     $hasNextPage = false;
                 }
             } while ($hasNextPage);
+            // Restore original parameters as they were modified by the paginator (at least with paging information)
+            $this->parameters = $originalParameters;
             // Aggregate the results, if the query was paginated
             $data = $paginator->aggregate($allResults);
         }
@@ -226,20 +188,6 @@ class ConnectorJson extends ConnectorBase
             'Structured data',
             $data
         );
-
-        // Implement post-processing hook
-        $hooks = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][$this->extensionKey]['processArray'] ?? null;
-        if (is_array($hooks) && count($hooks) > 0) {
-            trigger_error(
-                'Using the processArray hook is deprecated. Use the ProcessArrayDataEvent instead',
-                E_USER_DEPRECATED
-            );
-            foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][$this->extensionKey]['processArray'] as $className) {
-                $processor = GeneralUtility::makeInstance($className);
-                $data = $processor->processArray($data, $this);
-            }
-        }
-        /** @var ProcessArrayDataEvent $event */
         $event = $this->eventDispatcher->dispatch(
             new ProcessArrayDataEvent($data, $this)
         );
@@ -249,16 +197,11 @@ class ConnectorJson extends ConnectorBase
     /**
      * Return the JSON data (as a string) fetched with the given parameters
      *
-     * @param array $parameters Parameters for the call
      * @return mixed JSON content (string)
      * @throws \Exception
      */
-    protected function query(array $parameters = [])
+    protected function query(): mixed
     {
-        // Call to parent is used only to raise flag about argument deprecation
-        // TODO: remove once method signature is changed in next major version
-        parent::query(...func_get_args());
-
         // Check the configuration
         $problems = $this->checkConfiguration();
         // Log all issues and raise error if any
@@ -279,10 +222,20 @@ class ConnectorJson extends ConnectorBase
             );
         }
 
-        // Define the headers
-        $headers = null;
+        // Define the request options
+        $requestOptions = $this->parameters['requestOptions'] ?? [];
+        // Include deprecated headers property
+        // TODO: remove in next major version
         if (is_array($this->parameters['headers'] ?? null) && count($this->parameters['headers']) > 0) {
-            $headers = $this->parameters['headers'];
+            $requestOptions = array_merge_recursive($requestOptions, ['headers' => $this->parameters['headers']]);
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            $caller = end($backtrace);
+            $callerLocation = sprintf('file %s, line %d', $caller['file'], $caller['line']);
+
+            trigger_error(sprintf(
+                'Property "headers" is deprecated. Pass headers as part of the "requestOptions" property instead. Location: %s',
+                $callerLocation,
+            ), E_USER_DEPRECATED);
         }
 
         $this->logger->info(
@@ -290,20 +243,22 @@ class ConnectorJson extends ConnectorBase
             $this->parameters
         );
 
+        // Add the access token to the request headers (SuccessFactors specific)
+        $accessToken = $this->getAccessToken($this->parameters);
+        if ($accessToken !== null) {
+            $requestOptions['headers']['Authorization'] = 'Bearer ' . $accessToken;
+        }
+
         $fileUtility = GeneralUtility::makeInstance(FileUtility::class);
         $uri = $this->parameters['uri'];
         if (isset($this->parameters['queryParameters'])) {
             $uri = sprintf('%s?%s', $uri, http_build_query($this->parameters['queryParameters']));
         }
-
-        // Add Access Token to headers
-        $accessToken = $this->getAccessToken($this->parameters);
-        if (is_null($headers)) { $headers = []; }
-        $headers = array_merge($headers, ['Authorization' => 'Bearer ' . $accessToken]);
-
-        //fetch all data
-        $data = $this->fetchData($this->parameters, $headers);
-
+        $data = $fileUtility->getFileContent(
+            $uri,
+            $this->parameters['method'] ?? 'GET',
+            $requestOptions,
+        );
         if ($data === false) {
             $message = sprintf(
                 $this->sL('LLL:EXT:svconnector_successfactors/Resources/Private/Language/locallang.xlf:json_not_fetched'),
@@ -318,46 +273,60 @@ class ConnectorJson extends ConnectorBase
             );
         }
 
-        //limit to existing records
-        if (isset($this->parameters['limitByJobId']) && !empty($this->parameters['limitByJobId'])) {
-            $data = $this->filterDataByJobId($data, $this->parameters['limitByJobId']);
-        }
-
         // Check if the current charset is the same as the file encoding
         // Don't do the check if no encoding was defined
-        // TODO: add automatic encoding detection by reading the encoding attribute in the JSON header
+        // (the conversion must happen before the JSON data is decoded)
         if (empty($this->parameters['encoding'])) {
-            $encoding = '';
+            $encoding = null;
             $isSameCharset = true;
         } else {
-            // Standardize charset name and compare
             $encoding = $this->parameters['encoding'];
             $isSameCharset = $this->getCharset() === $encoding;
         }
         // If the charset is not the same, convert data
         if (!$isSameCharset) {
-            $data = $this->getCharsetConverter()->conv($data, $encoding, $this->getCharset());
+            $data = mb_convert_encoding($data, $this->getCharset(), $encoding);
         }
 
-        // Process the result if any hook is registered
-        $hooks = $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][$this->extensionKey]['processResponse'] ?? null;
-        if (is_array($hooks) && count($hooks) > 0) {
-            trigger_error(
-                'Using the processResponse hook is deprecated. Use the ProcessResponseEvent instead',
-                E_USER_DEPRECATED
-            );
-            foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS'][$this->extensionKey]['processResponse'] as $className) {
-                $processor = GeneralUtility::makeInstance($className);
-                $data = $processor->processResponse($data, $this);
-            }
+        // SAP SuccessFactors (OData v2) wraps the actual records in "d" => "results"
+        $data = $this->extractRecords($data, $uri);
+
+        // Limit to existing records
+        if (!empty($this->parameters['limitByJobId'])) {
+            $data = $this->filterDataByJobId($data, $this->parameters['limitByJobId']);
         }
-        /** @var ProcessResponseEvent $event */
+
+        // Fire event for response processing
         $event = $this->eventDispatcher->dispatch(
             new ProcessResponseEvent($data, $this)
         );
 
         // Return the result
-        return $data;
+        return $event->getResponse();
+    }
+
+    /**
+     * Extracts the records from the "d" => "results" property of the SAP SuccessFactors (OData v2) response.
+     *
+     * @param string $response Raw JSON response
+     * @param string $uri URI that was called (for error reporting)
+     * @return string JSON string with the records
+     */
+    protected function extractRecords(string $response, string $uri): string
+    {
+        $decoded = json_decode($response, true);
+        if (!is_array($decoded) || !isset($decoded['d']['results'])) {
+            $this->raiseError(
+                sprintf(
+                    $this->sL('LLL:EXT:svconnector_successfactors/Resources/Private/Language/locallang.xlf:json_invalid_response'),
+                    $uri
+                ),
+                1299257895,
+                [],
+                SourceErrorException::class
+            );
+        }
+        return json_encode($decoded['d']['results'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
     }
 
     /**
@@ -370,18 +339,21 @@ class ConnectorJson extends ConnectorBase
     protected function filterDataByJobId(string $data, string $jobIdField): string
     {
         // Decode JSON into an array
-        $dataArray = json_decode($data, true);
+        $dataArray = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
 
         // Get existing external_id values from the database
         $existingIds = $this->getJobOfferExternalIds();
 
         // Filter data based on existing external_id values
-        $filteredDataArray = array_filter($dataArray, function ($item) use ($existingIds, $jobIdField) {
-            return in_array($item[$jobIdField], $existingIds);
-        });
+        $filteredDataArray = array_values(
+            array_filter(
+                $dataArray,
+                static fn($item): bool => in_array($item[$jobIdField] ?? null, $existingIds)
+            )
+        );
 
         // Return the filtered array as JSON
-        return json_encode($filteredDataArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        return json_encode($filteredDataArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
     }
 
     /**
@@ -398,7 +370,7 @@ class ConnectorJson extends ConnectorBase
         return $queryBuilder
             ->select('external_id')
             ->from('tx_tt3career_domain_model_joboffer')
-            ->execute()
+            ->executeQuery()
             ->fetchFirstColumn();
     }
 
@@ -417,7 +389,7 @@ class ConnectorJson extends ConnectorBase
         } else {
             $paginatorClass = $paginatorSetting;
         }
-        $paginator = GeneralUtility::makeInstance($paginatorClass);
+        $paginator = GeneralUtility::makeInstance($paginatorClass, $this);
         if (!$paginator instanceof AbstractPaginator) {
             throw new \InvalidArgumentException(
                 sprintf(
@@ -436,12 +408,11 @@ class ConnectorJson extends ConnectorBase
      * for SAP SuccessFactors API
      *
      * @param array $parameters
-     * @return String|null
+     * @return string|null
      */
-    protected function getAccessToken(array $parameters): ?string {
-
+    protected function getAccessToken(array $parameters): ?string
+    {
         if ((array_key_exists('client_id', $parameters)) && (array_key_exists('assertion', $parameters))) {
-
             $parsed_url = parse_url($parameters['uri']);
             $domain = $parsed_url['scheme'] . '://' . $parsed_url['host'];
             $tokenUrl = $domain . '/oauth/token';
@@ -454,7 +425,7 @@ class ConnectorJson extends ConnectorBase
                         'Cache-Control' => 'no-cache',
                     ],
                     'form_params' => [
-                        'company_id' => $parameters['company_id'],
+                        'company_id' => $parameters['company_id'] ?? '',
                         'client_id' => $parameters['client_id'],
                         'assertion' => $parameters['assertion'],
                         'grant_type' => 'urn:ietf:params:oauth:grant-type:saml2-bearer',
@@ -467,55 +438,14 @@ class ConnectorJson extends ConnectorBase
                     return $data['access_token'] ?? null;
                 }
             } catch (\Exception $e) {
-                // Handle exception as needed
+                // PSR-3 logger (LoggerAwareTrait), not the removed TypoScript parser method -> false positive of the extension scanner
+                // @extensionScannerIgnoreLine
+                $this->logger->error('Could not retrieve access token: ' . $e->getMessage());
                 return null;
             }
         }
 
         return null;
     }
-
-    /**
-     * Fetches Api Data as array
-     *
-     * @param string $uri Address to read
-     * @param array $headers Headers to pass on to the request
-     * @return array
-     */
-    protected function fetchApiData(string $uri, array $headers) {
-        $fileUtility = GeneralUtility::makeInstance(FileUtility::class);
-        $response = $fileUtility->getFileContent(
-            $uri,
-            $headers,
-            $this->parameters['method'] ?? 'GET'
-        );
-        if ($response === false) {
-            return null;
-        }
-        $data = json_decode($response, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return null;
-        }
-        return $data['d']['results'];
-    }
-
-    /**
-     * Fetches data from SAP SuccessFactors
-     *
-     * @param string $uri Address to read
-     * @param array $headers Headers to pass on to the request
-     * @return string JSON string with all data
-     */
-    protected function fetchData(array $parameters, array $headers): string
-    {
-        $uri = $this->parameters['uri'];
-        if (isset($this->parameters['queryParameters'])) {
-            $uri = sprintf('%s?%s', $uri, http_build_query($this->parameters['queryParameters']));
-        }
-
-        $data = $this->fetchApiData($uri, $headers);
-        $data = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        return $data;
-    }
-
 }
+

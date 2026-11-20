@@ -17,6 +17,7 @@ namespace Cobweb\SvconnectorSuccessfactors\Unit\Tests;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Cobweb\Svconnector\Service\ConnectorServiceInterface;
 use Cobweb\SvconnectorSuccessfactors\Paginator\HydraPaginator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -29,7 +30,7 @@ class HydraPaginatorTest extends UnitTestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->subject = new HydraPaginator();
+        $this->subject = new HydraPaginator($this->createStub(ConnectorServiceInterface::class));
     }
 
     /**

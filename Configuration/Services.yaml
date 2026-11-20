@@ -10,5 +10,4 @@ services:
 
   Cobweb\SvconnectorSuccessfactors\Service\ConnectorJson:
     public: true
-    arguments:
-      - !tagged_iterator connector.service
+    shared: false

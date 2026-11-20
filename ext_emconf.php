@@ -14,7 +14,7 @@ $EM_CONF[$_EXTKEY] = [
     'title' => 'Connector service - JSON (SAP SuccessFactors)',
     'description' => 'Connector service for SAP SuccessFactors API (JSON)',
     'category' => 'services',
-    'version' => '5.0.0-successfactors',
+    'version' => '6.0.0-successfactors',
     'state' => 'stable',
     'clearcacheonload' => 0,
     'author' => 'Francois Suter (Idéative), Bastian Holzem (teufels GmbH)',
@@ -24,8 +24,9 @@ $EM_CONF[$_EXTKEY] = [
         [
             'depends' =>
                 [
-                    'typo3' => '12.4.0-13.4.99',
-                    'svconnector' => '6.0.0-0.0.0',
+                    'php' => '8.2.0-8.5.99',
+                    'typo3' => '13.4.0-14.3.99',
+                    'svconnector' => '7.0.0-0.0.0',
                 ],
             'conflicts' =>
                 [
